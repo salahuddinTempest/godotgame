@@ -1,0 +1,9 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.3.250 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+[16:57:58][INFO][GameManager] Royal Era v0.1.0 initialized.
+[16:58:10][INFO][MainMenu] Starting new game...
+[16:58:10][INFO][GameManager] State: MAIN_MENU → LOADING
+[16:58:10][INFO][GameManager] New game started. Difficulty: 1.0
+[16:58:10][INFO][GameManager] Player 1 joined. Party size: 1
+[16:58:10][INFO][GameManager] State: LOADING → IN_GAME

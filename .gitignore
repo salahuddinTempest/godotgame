@@ -1,0 +1,37 @@
+# Godot 4.x — Royal Era: Kingdom Chronicles
+
+# Godot generated files (never commit)
+.godot/
+*.import
+
+.agents/
+/assets
+
+# Build outputs
+build/
+export/
+
+# Editor metadata
+.mono/
+data_*/
+mono_crash.*.json
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Config / sensitive (runtime only)
+config/credentials.cfg
+config/cloud_auth.cfg
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

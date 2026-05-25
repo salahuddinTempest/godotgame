@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://cdbc42mxfub5l"]
+
+[ext_resource type="Script" path="res://src/player/player.gd" id="1_d63el"]
+[ext_resource type="Texture2D" path="res://assets/textures/resource_bits_texture.png" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="PlayerMaterial"]
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("2")
+texture_filter = 1
+
+[sub_resource type="CapsuleMesh" id="PlayerMesh"]
+material = SubResource("PlayerMaterial")
+
+[sub_resource type="CapsuleShape3D" id="PlayerShape"]
+radius = 0.4
+height = 1.8
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_d63el")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("PlayerShape")
+
+[node name="Model" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("PlayerMesh")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+current = true
+FOV = 70
+
+[node name="InteractRayCast" type="RayCast3D" parent="CameraPivot/Camera3D"]
+target_position = Vector3(0, 0, -5)
+hit_from_inside = true

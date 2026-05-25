@@ -1,0 +1,8 @@
+ERROR: Condition "!int_resources.has(id)" is true. Returning: ERR_INVALID_PARAMETER
+   at: _parse_sub_resource (scene/resources/resource_format_text.cpp:113)
+ERROR: Parse Error: Invalid parameter. [Resource file res://scenes/levels/kingdom_hub.tscn:6]
+   at: _parse_node_tag (scene/resources/resource_format_text.cpp:292)
+ERROR: Failed loading resource: res://scenes/levels/kingdom_hub.tscn.
+   at: _load (core/io/resource_loader.cpp:343)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

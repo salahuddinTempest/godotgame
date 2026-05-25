@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://b7aykopjki2mc"]
+
+[ext_resource type="Script" uid="uid://jingdy6c45iy" path="res://src/ui/main_menu.gd" id="1_gqk2s"]
+
+[node name="MainMenu" type="Control" unique_id=1116127278]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gqk2s")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1912426083]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0980392, 0.0980392, 0.160784, 1)
+
+[node name="Title" type="Label" parent="." unique_id=1975174224]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.15
+anchor_right = 0.7
+anchor_bottom = 0.25
+grow_horizontal = 2
+grow_vertical = 0
+text = "Royal Era: Kingdom Chronicles"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=762758290]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.35
+anchor_right = 0.65
+anchor_bottom = 0.65
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NewGameBtn" type="Button" parent="VBoxContainer" unique_id=285037252]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "New Game"
+
+[node name="LoadGameBtn" type="Button" parent="VBoxContainer" unique_id=855965117]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Load Game"
+
+[node name="QuitBtn" type="Button" parent="VBoxContainer" unique_id=761501303]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Quit"

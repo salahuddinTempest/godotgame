@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Cannot call non-static function "load_level()" on the class "res://src/world/level_manager.gd" directly. Make an instance instead.
+   at: GDScript::reload (res://src/ui/main_menu.gd:32)
+ERROR: Failed to load script "res://src/ui/main_menu.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
