@@ -136,15 +136,15 @@ func _input(event: InputEvent) -> void:
 	if _rebinding_action.is_empty():
 		return
 
-	# Accept keyboard or mouse button as new binding
-	var accepted: bool = (event is InputEventKey and not event.pressed == false) or \
-	                     (event is InputEventMouseButton and event.pressed)
+	# Only process key-down or mouse-button press
+	var is_key_down   := event is InputEventKey and (event as InputEventKey).pressed
+	var is_mouse_down := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 
-	if not accepted:
+	if not (is_key_down or is_mouse_down):
 		return
 
 	# Ignore Escape — cancel rebind
-	if event is InputEventKey and event.physical_keycode == KEY_ESCAPE:
+	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_ESCAPE:
 		if _rebinding_btn:
 			_rebinding_btn.text = _get_key_label(_rebinding_action)
 		_rebinding_action = ""
@@ -152,13 +152,13 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	# Replace keyboard/mouse bindings for this action
+	# Replace keyboard/mouse bindings for this action (keep gamepad intact)
 	var old_events := InputMap.action_get_events(_rebinding_action)
 	for ev in old_events:
 		if ev is InputEventKey or ev is InputEventMouseButton:
 			InputMap.action_erase_event(_rebinding_action, ev)
 
-	# Add the new event
+	# Add the new event (with pressed=false so it fires on release in-game)
 	var new_event := event.duplicate()
 	if new_event is InputEventKey:
 		(new_event as InputEventKey).pressed = false
@@ -166,6 +166,10 @@ func _input(event: InputEvent) -> void:
 
 	if _rebinding_btn:
 		_rebinding_btn.text = _get_key_label(_rebinding_action)
+
+	# If rebinding toggle_view, also update player camera mode listener
+	if _rebinding_action == "toggle_view" and _player:
+		GameLogger.info("SettingsMenu", "toggle_view rebound — use key in game to switch FPP/TPP")
 
 	_rebinding_action = ""
 	_rebinding_btn = null

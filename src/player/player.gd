@@ -87,8 +87,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		_handle_interaction()
 
-	# NOTE: toggle_view is intentionally NOT bound to a key here.
-	# It is changed from Options > Settings > Controls tab.
+	# NOTE: toggle_view has NO default key.
+	# Bind it via Options > Settings > Controls tab.
+	if event.is_action_pressed("toggle_view"):
+		set_camera_mode(not is_third_person)
 
 	if event.is_action_pressed("ui_cancel"):
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -159,7 +161,8 @@ func _apply_camera_mode() -> void:
 		return
 
 	if is_third_person:
-		model.visible = true if model else true
+		if model:
+			model.visible = true
 		if interact_raycast:
 			interact_raycast.target_position = Vector3(0, 0, -8)
 	else:
@@ -179,29 +182,35 @@ func _update_camera_transform() -> void:
 		return
 
 	if is_third_person:
-		# Orbit camera: pivot sits at character shoulder height,
-		# camera is pulled back along the orbit sphere
-		camera_pivot.position = Vector3(0, TPP_HEIGHT, 0)
+		# Camera pivot stays at player hip level (world space child)
+		camera_pivot.position = Vector3.ZERO   # pivot stays at player root
+		camera_pivot.rotation  = Vector3.ZERO  # no rotation on pivot itself
 
-		# Apply yaw on the pivot parent (world space)
-		camera_pivot.rotation.y = _cam_yaw
-
-		# Apply pitch by tilting the camera downward/upward
-		camera.rotation.x = _cam_pitch
-
-		# Place camera behind at distance along local -Z after pitch
-		# We use a simple spherical offset: (0, sin(pitch)*dist, cos(pitch)*dist)
-		# In local camera_pivot space, "behind" is +Z (camera looks toward -Z)
+		# Compute orbit position in world space around player
+		# Yaw rotates around Y, pitch tilts up/down
+		# Camera sits BEHIND (+Z local) and UP from player at given distance
 		var dist: float = TPP_DISTANCE
-		camera.position = Vector3(0.0,
-		                          sin(-_cam_pitch) * dist,
-		                          cos(-_cam_pitch) * dist)
+		var pitch := _cam_pitch  # negative = camera looking slightly down at player
+
+		# Spherical → Cartesian offset (camera behind player relative to yaw)
+		# In Godot's coordinate system: -Z is "forward" (camera's view direction)
+		# We want camera at: yaw rotated position, tilted by pitch
+		var offset_x := sin(_cam_yaw) * cos(pitch) * dist
+		var offset_y := -sin(pitch) * dist + TPP_HEIGHT
+		var offset_z := cos(_cam_yaw) * cos(pitch) * dist
+
+		camera.global_position = global_position + Vector3(offset_x, offset_y, offset_z)
+
+		# Make camera look at character center (chest height)
+		var look_target := global_position + Vector3(0, TPP_HEIGHT, 0)
+		camera.look_at(look_target, Vector3.UP)
 	else:
-		# First-person: camera at head height, no offset
-		camera_pivot.position = Vector3(0, FPP_HEIGHT, 0)
-		camera_pivot.rotation.y = _cam_yaw
-		camera.rotation.x = _cam_pitch
-		camera.position   = Vector3.ZERO
+		# First-person: camera_pivot is the "head" at FPP_HEIGHT
+		# Yaw applied on pivot, pitch applied on camera
+		camera_pivot.position    = Vector3(0, FPP_HEIGHT, 0)
+		camera_pivot.rotation    = Vector3(0, _cam_yaw, 0)
+		camera.position          = Vector3.ZERO
+		camera.rotation          = Vector3(_cam_pitch, 0, 0)
 
 
 ## Public API for Settings menu to toggle camera mode
