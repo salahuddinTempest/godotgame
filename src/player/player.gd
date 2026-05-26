@@ -26,6 +26,7 @@ var is_third_person: bool = false
 @onready var camera: Camera3D = get_node_or_null("CameraPivot/Camera3D")
 @onready var model: Node3D = get_node_or_null("Model")
 @onready var interact_raycast: RayCast3D = get_node_or_null("CameraPivot/Camera3D/InteractRayCast")
+@onready var anim_player: AnimationPlayer = get_node_or_null("Model/AnimationPlayer")
 
 func _ready() -> void:
 	if not stats:
@@ -110,6 +111,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = lerp(velocity.z, 0.0, PLAYER_FRICTION * delta)
 
 	move_and_slide()
+	_update_animations()
 
 func _update_camera_mode() -> void:
 	if not camera_pivot or not camera:
@@ -157,3 +159,31 @@ func _update_equipment_stats() -> void:
 	stats.equipment_defense_bonus = equipment.total_defense_bonus
 	stats.equipment_speed_bonus = equipment.total_speed_bonus
 	stats.stats_recalculated.emit()
+
+
+func _update_animations() -> void:
+	if not anim_player:
+		return
+
+	var on_ground := is_on_floor() if is_local_authority() else abs(velocity.y) < 0.1
+
+	if not on_ground:
+		if velocity.y > 0.1:
+			_play_anim("Jump_Start")
+		else:
+			_play_anim("Jump")
+	else:
+		var horiz_vel := Vector3(velocity.x, 0.0, velocity.z)
+		var horiz_speed := horiz_vel.length()
+		if horiz_speed < 0.1:
+			_play_anim("Idle")
+		elif horiz_speed > 6.0 or (is_local_authority() and is_sprinting):
+			_play_anim("Sprint")
+		else:
+			_play_anim("Walk")
+
+
+func _play_anim(anim_name: String) -> void:
+	if anim_player and anim_player.has_animation(anim_name):
+		if anim_player.current_animation != anim_name:
+			anim_player.play(anim_name, 0.2)
