@@ -18,11 +18,13 @@ var session_start_time: float = 0.0
 var total_play_time: float = 0.0
 var current_difficulty: float = 1.0  # 0.8 easy, 1.0 normal, 1.3 hard
 
+# === Save/Load Bridge ===
+## Holds save data during scene transition so kingdom_hub can restore state.
+var pending_save_data: Dictionary = {}
+var pending_save_slot: int = 0
+
 # === Private Variables ===
 var _paused_by: String = ""
-
-# === Onready ===
-# (Autoload tidak punya scene, referensi di-set saat ready)
 
 # === Lifecycle Methods ===
 
@@ -107,7 +109,6 @@ func _connect_signals() -> void:
 
 func _on_player_died(player_id: int) -> void:
 	GameLogger.info("GameManager", "Player %d died." % player_id)
-	# Check for game over condition (all players dead in certain modes)
 	var all_dead: bool = true
 	for pid: int in active_players:
 		var p: Node = active_players[pid]
@@ -119,5 +120,4 @@ func _on_player_died(player_id: int) -> void:
 		change_state(Constants.GameState.GAME_OVER)
 
 func _on_game_state_changed(old: Constants.GameState, new: Constants.GameState) -> void:
-	# Hook for future expansion
 	pass

@@ -19,6 +19,7 @@ config/version="0.1.0"
 config/tags=PackedStringArray("rpg", "co-op", "fantasy", "medieval")
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
+run/low_processor_mode=true
 config/icon="res://assets/icon.png"
 
 [autoload]
@@ -27,6 +28,7 @@ EventBus="*res://src/core/event_bus.gd"
 Constants="*res://src/core/constants.gd"
 GameManager="*res://src/core/game_manager.gd"
 ActiveSkills="*res://src/player/abilities/active_skills.gd"
+SaveManager="*res://src/systems/save_manager.gd"
 
 [display]
 
