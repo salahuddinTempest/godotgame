@@ -58,6 +58,11 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Load Game"
 
+[node name="SettingsBtn" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Settings"
+
 [node name="QuitBtn" type="Button" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
