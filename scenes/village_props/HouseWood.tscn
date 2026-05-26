@@ -270,7 +270,7 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_6utr6")
 
-[node name="HouseWood" type="Node3D" unique_id=10674592]
+[node name="HouseWood" type="Node3D" unique_id=114562492]
 
 [node name="wall-wood-door2" type="Node3D" parent="." unique_id=2112009403 instance=ExtResource("1_3kmh4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
@@ -297,38 +297,38 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 mesh = SubResource("ArrayMesh_7jkw5")
 skeleton = NodePath("")
 
-[node name="@Node3D@2" type="Node3D" parent="." unique_id=690076631 instance=ExtResource("4_ocjnt")]
+[node name="@Node3D@2" type="Node3D" parent="." unique_id=316136178 instance=ExtResource("4_ocjnt")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1, 0, -2)
 
-[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@2" unique_id=1518451535]
+[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@2" unique_id=78728845]
 mesh = SubResource("ArrayMesh_7jkw5")
 skeleton = NodePath("")
 
-[node name="@Node3D@3" type="Node3D" parent="." unique_id=1594092962 instance=ExtResource("3_jdeve")]
+[node name="@Node3D@3" type="Node3D" parent="." unique_id=2081665892 instance=ExtResource("3_jdeve")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -2)
 
-[node name="wall-wood-window-shutters" type="MeshInstance3D" parent="@Node3D@3" unique_id=1789944360]
+[node name="wall-wood-window-shutters" type="MeshInstance3D" parent="@Node3D@3" unique_id=2074216924]
 mesh = SubResource("ArrayMesh_omlq0")
 skeleton = NodePath("")
 
-[node name="@Node3D@4" type="Node3D" parent="." unique_id=1799298234 instance=ExtResource("4_ocjnt")]
+[node name="@Node3D@4" type="Node3D" parent="." unique_id=1187491850 instance=ExtResource("4_ocjnt")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1, 0, -2)
 
-[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@4" unique_id=424189674]
+[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@4" unique_id=492883379]
 mesh = SubResource("ArrayMesh_7jkw5")
 skeleton = NodePath("")
 
-[node name="@Node3D@5" type="Node3D" parent="." unique_id=1431440245 instance=ExtResource("4_ocjnt")]
+[node name="@Node3D@5" type="Node3D" parent="." unique_id=1150318635 instance=ExtResource("4_ocjnt")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1, 0, -1)
 
-[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@5" unique_id=557839829]
+[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@5" unique_id=379628423]
 mesh = SubResource("ArrayMesh_7jkw5")
 skeleton = NodePath("")
 
-[node name="@Node3D@6" type="Node3D" parent="." unique_id=1831094651 instance=ExtResource("4_ocjnt")]
+[node name="@Node3D@6" type="Node3D" parent="." unique_id=1438645510 instance=ExtResource("4_ocjnt")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1, 0, -1)
 
-[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@6" unique_id=1972006808]
+[node name="wall-wood" type="MeshInstance3D" parent="@Node3D@6" unique_id=1728236479]
 mesh = SubResource("ArrayMesh_7jkw5")
 skeleton = NodePath("")
 
@@ -346,31 +346,31 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("ArrayMesh_ajgl6")
 skeleton = NodePath("")
 
-[node name="@Node3D@7" type="Node3D" parent="." unique_id=1428083824 instance=ExtResource("5_b403l")]
+[node name="@Node3D@7" type="Node3D" parent="." unique_id=1545042456 instance=ExtResource("5_b403l")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1, 1, 0)
 
-[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@7" unique_id=1915274220]
+[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@7" unique_id=917747966]
 mesh = SubResource("ArrayMesh_k6hkq")
 skeleton = NodePath("")
 
-[node name="@Node3D@8" type="Node3D" parent="." unique_id=1464363773 instance=ExtResource("5_b403l")]
+[node name="@Node3D@8" type="Node3D" parent="." unique_id=542789009 instance=ExtResource("5_b403l")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1, 1, -2)
 
-[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@8" unique_id=1561863728]
+[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@8" unique_id=78497438]
 mesh = SubResource("ArrayMesh_k6hkq")
 skeleton = NodePath("")
 
-[node name="@Node3D@9" type="Node3D" parent="." unique_id=1360713396 instance=ExtResource("6_04ulo")]
+[node name="@Node3D@9" type="Node3D" parent="." unique_id=551867201 instance=ExtResource("6_04ulo")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1, -2)
 
-[node name="roof-gable" type="MeshInstance3D" parent="@Node3D@9" unique_id=2101349087]
+[node name="roof-gable" type="MeshInstance3D" parent="@Node3D@9" unique_id=1708981237]
 mesh = SubResource("ArrayMesh_ajgl6")
 skeleton = NodePath("")
 
-[node name="@Node3D@10" type="Node3D" parent="." unique_id=1990792190 instance=ExtResource("5_b403l")]
+[node name="@Node3D@10" type="Node3D" parent="." unique_id=1886231404 instance=ExtResource("5_b403l")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -2)
 
-[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@10" unique_id=1071888133]
+[node name="roof-gable-end" type="MeshInstance3D" parent="@Node3D@10" unique_id=411379594]
 mesh = SubResource("ArrayMesh_k6hkq")
 skeleton = NodePath("")
 

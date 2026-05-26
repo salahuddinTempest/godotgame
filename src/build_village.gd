@@ -213,12 +213,12 @@ func _build_one_plot(root: Node3D, center: Vector3, side: int, col: int) -> void
 		if is_gate_pos:
 			var gate := _glb("fence-gate")
 			gate.position = Vector3(fx, 0, front_z)
-			gate.rotation_degrees.y = 0
+			gate.rotation_degrees.y = 90
 			root.add_child(gate)
 		else:
 			var f := _glb("fence")
 			f.position = Vector3(fx, 0, front_z)
-			f.rotation_degrees.y = 0
+			f.rotation_degrees.y = 90
 			root.add_child(f)
 
 	# Back fence
@@ -227,7 +227,7 @@ func _build_one_plot(root: Node3D, center: Vector3, side: int, col: int) -> void
 		var fx := center.x - hw + 0.5 + float(i)
 		var f := _glb("fence")
 		f.position = Vector3(fx, 0, back_z)
-		f.rotation_degrees.y = 0
+		f.rotation_degrees.y = 90
 		root.add_child(f)
 
 	# Left fence
@@ -235,7 +235,7 @@ func _build_one_plot(root: Node3D, center: Vector3, side: int, col: int) -> void
 		var fz := center.z - hd + 0.5 + float(i)
 		var f := _glb("fence")
 		f.position = Vector3(center.x - hw, 0, fz)
-		f.rotation_degrees.y = 90
+		f.rotation_degrees.y = 0
 		root.add_child(f)
 
 	# Right fence
@@ -243,7 +243,7 @@ func _build_one_plot(root: Node3D, center: Vector3, side: int, col: int) -> void
 		var fz := center.z - hd + 0.5 + float(i)
 		var f := _glb("fence")
 		f.position = Vector3(center.x + hw, 0, fz)
-		f.rotation_degrees.y = 90
+		f.rotation_degrees.y = 0
 		root.add_child(f)
 
 	# ── House ──
