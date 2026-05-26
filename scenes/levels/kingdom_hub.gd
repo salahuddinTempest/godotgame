@@ -5,6 +5,7 @@ enum HouseType { PLASTER, BRICK, WOOD, STONE }
 
 var _pause_menu_scene: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
 var _pause_menu: Control = null
+var _pause_layer: CanvasLayer = null
 
 @export_group("House Placement")
 @export var house_count: int = 6
@@ -44,30 +45,39 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause_menu"):
-		if _pause_menu and is_instance_valid(_pause_menu):
+		if _pause_layer and is_instance_valid(_pause_layer):
 			return
 		if Engine.is_editor_hint():
 			return
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_pause_layer = CanvasLayer.new()
+		_pause_layer.layer = 128
+		_pause_layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+		
 		_pause_menu = _pause_menu_scene.instantiate()
-		var cl: CanvasLayer = CanvasLayer.new()
-		cl.layer = 128
-		cl.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-		cl.add_child(_pause_menu)
-		add_child(cl)
+		_pause_layer.add_child(_pause_menu)
+		add_child(_pause_layer)
+		
 		_pause_menu.resume_pressed.connect(_on_pause_resume)
 		_pause_menu.quit_to_menu_pressed.connect(_on_pause_quit)
 		GameManager.pause_game()
 
 
 func _on_pause_resume() -> void:
+	if _pause_layer and is_instance_valid(_pause_layer):
+		_pause_layer.queue_free()
+	_pause_layer = null
 	_pause_menu = null
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	GameManager.resume_game()
 
 
 func _on_pause_quit() -> void:
+	if _pause_layer and is_instance_valid(_pause_layer):
+		_pause_layer.queue_free()
+	_pause_layer = null
 	_pause_menu = null
+
 
 
 func spawn_player() -> void:
