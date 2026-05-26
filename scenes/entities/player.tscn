@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/Universal Base Characters[Standard]/Base Characters/Godot - UE/T_Superhero_Male_Dark.png" id="4_b6tgf"]
 [ext_resource type="Texture2D" path="res://assets/Universal Base Characters[Standard]/Base Characters/Godot - UE/T_Superhero_Male_Roughness.png" id="5_73kkf"]
 [ext_resource type="Texture2D" path="res://assets/Universal Base Characters[Standard]/Base Characters/Godot - UE/T_Superhero_Male_Normal.png" id="6_n5sgd"]
+[ext_resource type="Script" path="res://src/player/player.gd" id="8_script"]
 [ext_resource type="AnimationLibrary" path="res://assets/Universal_Animations.tres" id="7_5ki56"]
 
 [sub_resource type="CapsuleShape3D" id="PlayerShape"]
@@ -300,6 +301,7 @@ _surfaces = [{
 blend_shape_mode = 0
 
 [node name="Player" type="CharacterBody3D" unique_id=1269473660]
+script = ExtResource("8_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=275622454]
 shape = SubResource("PlayerShape")

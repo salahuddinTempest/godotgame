@@ -79,6 +79,17 @@ func _physics_process(delta: float) -> void:
 		return
 
 	input_direction = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+
+	if input_direction == Vector2.ZERO:
+		if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
+			input_direction.y -= 1
+		if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
+			input_direction.y += 1
+		if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
+			input_direction.x -= 1
+		if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
+			input_direction.x += 1
+
 	is_sprinting = Input.is_action_pressed("sprint")
 
 	if not is_on_floor():
@@ -87,11 +98,11 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = stats.base_jump_height
 
-	var direction := Vector3.ZERO
+	var dir_vec: Vector3 = Vector3.ZERO
 	if camera_pivot:
-		direction = (camera_pivot.transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
+		dir_vec = (camera_pivot.transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
 	else:
-		direction = Vector3(input_direction.x, 0, input_direction.y).normalized()
+		dir_vec = Vector3(input_direction.x, 0, input_direction.y).normalized()
 
 	var speed: float = stats.get_move_speed()
 	if is_sprinting and stats.current_stamina > 0:
@@ -100,17 +111,18 @@ func _physics_process(delta: float) -> void:
 	if inventory.is_overweight():
 		speed *= 0.7
 
-	if direction:
-		velocity.x = lerp(velocity.x, direction.x * speed, PLAYER_ACCELERATION * delta)
-		velocity.z = lerp(velocity.z, direction.z * speed, PLAYER_ACCELERATION * delta)
+	if dir_vec:
+		velocity.x = lerp(velocity.x, dir_vec.x * speed, PLAYER_ACCELERATION * delta)
+		velocity.z = lerp(velocity.z, dir_vec.z * speed, PLAYER_ACCELERATION * delta)
 		if model:
-			var target_rotation: float = atan2(direction.x, direction.z)
+			var target_rotation: float = atan2(dir_vec.x, dir_vec.z)
 			model.rotation.y = lerp_angle(model.rotation.y, target_rotation, 10.0 * delta)
 	else:
 		velocity.x = lerp(velocity.x, 0.0, PLAYER_FRICTION * delta)
 		velocity.z = lerp(velocity.z, 0.0, PLAYER_FRICTION * delta)
 
 	move_and_slide()
+
 	_update_animations()
 
 func _update_camera_mode() -> void:
@@ -165,7 +177,7 @@ func _update_animations() -> void:
 	if not anim_player:
 		return
 
-	var on_ground := is_on_floor() if is_local_authority() else abs(velocity.y) < 0.1
+	var on_ground: bool = is_on_floor() if is_local_authority() else abs(velocity.y) < 0.1
 
 	if not on_ground:
 		if velocity.y > 0.1:
