@@ -174,25 +174,18 @@ func _add_deco(parent: Node3D, path: String, pos: Vector3, sv: Vector3,
 
 
 # ═════════════════════════════════════════════════
-#  VILLAGE
+#  VILLAGE — Load pre-built structured scene
 # ═════════════════════════════════════════════════
 
 func build_village() -> void:
-	var v: Node3D = Node3D.new()
-	v.name = "Village"
-	add_child(v)
-
-	var houses: Array[Dictionary] = _gen_houses()
-	var pos: Array[Vector3] = []
-	for h in houses:
-		pos.append(h.p)
-
-	for h in houses:
-		_build_one(v, h)
-		_build_yard(v, h.p, h.f)
-	_build_paths(v, houses)
-	_build_roads(v, pos)
-	_build_decor(v, pos)
+	var village_scene: PackedScene = load("res://scenes/Village.tscn")
+	if village_scene:
+		var village: Node3D = village_scene.instantiate()
+		village.name = "Village"
+		add_child(village)
+		GameLogger.info("KingdomHub", "Village loaded from Village.tscn")
+	else:
+		GameLogger.error("KingdomHub", "Failed to load Village.tscn")
 
 
 func _gen_houses() -> Array[Dictionary]:
