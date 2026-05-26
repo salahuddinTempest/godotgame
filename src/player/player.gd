@@ -82,7 +82,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_cam_yaw   -= event.relative.x * MOUSE_SENSITIVITY
 		_cam_pitch  = clamp(_cam_pitch - event.relative.y * MOUSE_SENSITIVITY,
-		                    CAMERA_PITCH_MIN, CAMERA_PITCH_MAX)
+							CAMERA_PITCH_MIN, CAMERA_PITCH_MAX)
 
 	if event.is_action_pressed("interact"):
 		_handle_interaction()

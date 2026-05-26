@@ -187,6 +187,9 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_ybv6v")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_lk53n"]
+size = Vector3(3, 1, 4.0004883)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7aovt"]
 resource_name = "colormap"
 cull_mode = 2
@@ -303,6 +306,9 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_ebiir")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6tvxj"]
+size = Vector3(3, 4, 3)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y6kh2"]
 resource_name = "colormap"
@@ -5917,6 +5923,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -2)
 [node name="chimney3" parent="HouseWood" unique_id=1941843466 instance=ExtResource("12_1tvb3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, -0.5)
 
+[node name="StaticBody3D" type="StaticBody3D" parent="HouseWood" unique_id=702046575]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HouseWood/StaticBody3D" unique_id=1046063601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.5002441)
+shape = SubResource("BoxShape3D_lk53n")
+
 [node name="lantern2" parent="." unique_id=791839545 instance=ExtResource("13_qxt0w")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.2, 0, 3)
 
@@ -6780,6 +6792,7 @@ mesh = SubResource("ArrayMesh_8rt2l")
 skeleton = NodePath("")
 
 [node name="@Node3D@841" parent="." unique_id=1410815137 instance=ExtResource("6_ps3bl")]
+physics_interpolation_mode = 1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 10)
 
 [node name="wall-wood-door3" parent="@Node3D@841" unique_id=1848782845 instance=ExtResource("7_o274y")]
@@ -7735,6 +7748,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -2)
 [node name="chimney3" parent="@Node3D@959" unique_id=1005055442 instance=ExtResource("12_1tvb3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, -0.5)
 
+[node name="StaticBody3D" type="StaticBody3D" parent="@Node3D@959" unique_id=560476891]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="@Node3D@959/StaticBody3D" unique_id=110315170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -1)
+shape = SubResource("BoxShape3D_6tvxj")
+
 [node name="@Node3D@960" parent="." unique_id=1861722213 instance=ExtResource("13_qxt0w")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.2, 0, -3)
 
@@ -8142,7 +8161,7 @@ mesh = SubResource("ArrayMesh_8rt2l")
 skeleton = NodePath("")
 
 [node name="@Node3D@1018" parent="." unique_id=71039925 instance=ExtResource("15_47x0a")]
-transform = Transform3D(-1.4, 0, -1.2239188e-07, 0, 1.4, 0, 1.2239188e-07, 0, -1.4, -8, 1, -10)
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -8, -1, -8)
 
 [node name="wall-door3" parent="@Node3D@1018" unique_id=1144403696 instance=ExtResource("16_jhdad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
@@ -9375,15 +9394,16 @@ mesh = SubResource("ArrayMesh_o27vn")
 skeleton = NodePath("")
 
 [node name="windmill2" parent="." unique_id=2074755295 instance=ExtResource("37_f1csm")]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 32, 0, 0)
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 32, 4, -2)
 
 [node name="windmill2" type="MeshInstance3D" parent="windmill2" unique_id=425896620]
 mesh = SubResource("ArrayMesh_qmtx3")
 skeleton = NodePath("")
 
 [node name="watermill2" parent="." unique_id=941088789 instance=ExtResource("38_hp1pe")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 3, 0)
 
 [node name="watermill2" type="MeshInstance3D" parent="watermill2" unique_id=40807781]
+transform = Transform3D(1, -3.090862e-08, 1.28027695e-08, 3.090862e-08, 0.70710677, -0.70710677, 1.28027695e-08, 0.70710677, 0.70710677, 0, -1, 2)
 mesh = SubResource("ArrayMesh_c38gp")
 skeleton = NodePath("")

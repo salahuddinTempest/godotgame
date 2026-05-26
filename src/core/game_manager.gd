@@ -32,6 +32,10 @@ func _ready() -> void:
 	_connect_signals()
 	GameLogger.info("GameManager", "Royal Era v%s initialized." % GAME_VERSION)
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		cleanup_all()
+
 func _process(delta: float) -> void:
 	if current_state == Constants.GameState.IN_GAME:
 		total_play_time += delta
@@ -95,6 +99,13 @@ func get_party_size() -> int:
 
 func is_host() -> bool:
 	return multiplayer.is_server()
+
+func cleanup_all() -> void:
+	for p: Node in active_players.values():
+		if is_instance_valid(p):
+			p.queue_free()
+	active_players.clear()
+	LevelManager.cleanup()
 
 func get_session_duration() -> float:
 	if session_start_time <= 0.0:

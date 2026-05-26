@@ -45,6 +45,12 @@ static func load_level(level_name: String) -> void:
 	EventBus.level_load_finished.emit(current_level_name)
 	GameManager.change_state(Constants.GameState.IN_GAME)
 
+static func cleanup() -> void:
+	if current_level:
+		current_level.queue_free()
+		current_level = null
+	current_level_name = ""
+
 # === Private Methods ===
 
 static func _spawn_player() -> void:
