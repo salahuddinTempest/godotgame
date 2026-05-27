@@ -36,22 +36,41 @@ var _rebinding_btn: Button = null
 # Reference to player if in game (for camera mode toggle)
 var _player: Player = null
 
-@onready var tab_container: TabContainer = $Panel/VBox/TabContainer
-@onready var controls_scroll: ScrollContainer = $Panel/VBox/TabContainer/Controls/ScrollContainer
-@onready var controls_vbox: VBoxContainer = $Panel/VBox/TabContainer/Controls/ScrollContainer/VBox
+@onready var controls_scroll: ScrollContainer = $Panel/VBox/ScrollContainer
+@onready var controls_vbox: VBoxContainer = $Panel/VBox/ScrollContainer/VBox
 @onready var close_btn: Button = $Panel/VBox/CloseBtn
-@onready var camera_mode_option: OptionButton = $Panel/VBox/TabContainer/Video/CameraModeRow/ModeOption
+@onready var camera_mode_option: OptionButton = $Panel/VBox/CameraModeRow/ModeOption
+@onready var panel: PanelContainer = $Panel
 
 
 func _ready() -> void:
+	# Run camera setup first to ensure it's populated even if other setups fail
+	_setup_camera_tab()
+	
 	close_btn.pressed.connect(_on_close_pressed)
 	_populate_controls()
-	_setup_camera_tab()
 
-	# Find player in scene (if in game)
+	# Find local player in scene (if in game)
 	var players := get_tree().get_nodes_in_group("players")
-	if players.size() > 0 and players[0] is Player:
+	_player = null
+	for p in players:
+		if p is Player and p.is_local_authority():
+			_player = p
+			break
+	if not _player and players.size() > 0 and players[0] is Player:
 		_player = players[0]
+
+	# Update selected index if player was found
+	if _player:
+		camera_mode_option.selected = 0 if GameManager.preferred_camera_tpp else 1
+
+	# Set up click-to-close background
+	size = get_viewport().size
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	gui_input.connect(_on_panel_input)
+	# Prevent CloseBtn from propagating clicks to panel
+	close_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
 func _setup_camera_tab() -> void:
@@ -59,21 +78,20 @@ func _setup_camera_tab() -> void:
 	camera_mode_option.add_item("Third Person (TPP)", 0)
 	camera_mode_option.add_item("First Person (FPP)", 1)
 
-	if _player:
-		camera_mode_option.selected = 0 if _player.is_third_person else 1
-	else:
-		camera_mode_option.selected = 0
+	camera_mode_option.selected = 0 if GameManager.preferred_camera_tpp else 1
 
-	camera_mode_option.item_selected.connect(_on_camera_mode_selected)
+	if not camera_mode_option.item_selected.is_connected(_on_camera_mode_selected):
+		camera_mode_option.item_selected.connect(_on_camera_mode_selected)
 
 
 func _on_camera_mode_selected(index: int) -> void:
 	var tpp: bool = (index == 0)
+	GameManager.preferred_camera_tpp = tpp
 	if _player:
 		_player.set_camera_mode(tpp)
 		GameLogger.info("SettingsMenu", "Camera mode switched to %s" % ["TPP", "FPP"][index])
 	else:
-		GameLogger.warn("SettingsMenu", "No player found to switch camera mode")
+		GameLogger.info("SettingsMenu", "Camera mode preference saved as %s" % ["TPP", "FPP"][index])
 
 
 func _populate_controls() -> void:
@@ -121,7 +139,9 @@ func _get_key_label(action: String) -> String:
 	var events := InputMap.action_get_events(action)
 	for event in events:
 		if event is InputEventKey:
-			return event.as_text_physical_keycode()
+			if event.has_method("as_text_physical_keycode"):
+				return event.as_text_physical_keycode()
+			return event.as_text()
 		if event is InputEventMouseButton:
 			return "Klik %s" % _mouse_btn_name(event.button_index)
 	return "(tidak ada)"
@@ -157,6 +177,20 @@ func _on_clear_binding(action: String, btn: Button) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Handle Escape to close menu when not rebinding
+	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_ESCAPE:
+		if _rebinding_action.is_empty():
+			# Not rebinding - close the menu
+			_on_close_pressed()
+		else:
+			# Rebinding - cancel rebind (existing behavior)
+			if _rebinding_btn:
+				_rebinding_btn.text = _get_key_label(_rebinding_action)
+			_rebinding_action = ""
+			_rebinding_btn = null
+		get_viewport().set_input_as_handled()
+		return
+
 	if _rebinding_action.is_empty():
 		return
 
@@ -165,15 +199,6 @@ func _input(event: InputEvent) -> void:
 	var is_mouse_down := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 
 	if not (is_key_down or is_mouse_down):
-		return
-
-	# Ignore Escape — cancel rebind
-	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_ESCAPE:
-		if _rebinding_btn:
-			_rebinding_btn.text = _get_key_label(_rebinding_action)
-		_rebinding_action = ""
-		_rebinding_btn = null
-		get_viewport().set_input_as_handled()
 		return
 
 	# Replace keyboard/mouse bindings for this action (keep gamepad intact)
@@ -203,3 +228,14 @@ func _input(event: InputEvent) -> void:
 func _on_close_pressed() -> void:
 	closed.emit()
 	queue_free()
+
+func _on_viewport_size_changed() -> void:
+	size = get_viewport().size
+
+func _on_panel_input(event: InputEvent) -> void:
+	# If clicked outside of any child (i.e., on the panel background), close settings
+	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT and (event as InputEventMouseButton).pressed:
+		# Check if the click is not on any child that handles mouse (we already set mouse_filter to STOP on children that we don't want to propagate)
+		# Since we set mouse_filter to STOP on close_btn, clicks on them won't reach this handler.
+		# So any click that reaches here is on the panel background.
+		_on_close_pressed()

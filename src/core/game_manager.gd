@@ -17,6 +17,7 @@ var party_leader_id: int = 1
 var session_start_time: float = 0.0
 var total_play_time: float = 0.0
 var current_difficulty: float = 1.0  # 0.8 easy, 1.0 normal, 1.3 hard
+var preferred_camera_tpp: bool = true
 
 # === Save/Load Bridge ===
 ## Holds save data during scene transition so kingdom_hub can restore state.

@@ -8,6 +8,7 @@ signal interacted(target: Node3D)
 @export var equipment: Equipment
 var skill_manager: SkillManager
 var weapon_attachment: WeaponAttachment
+@export var show_status_plate: bool = true
 
 # ── Constants ──────────────────────────────────────────────────────
 const PLAYER_GRAVITY: float     = Constants.PLAYER_GRAVITY
@@ -82,12 +83,13 @@ func _ready() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 	add_to_group("players")
+	is_third_person = GameManager.preferred_camera_tpp
 	_apply_camera_mode()
 	# Set up WeaponAttachment component
 	weapon_attachment = WeaponAttachment.new()
 	add_child(weapon_attachment)
 	call_deferred("_equip_default_weapon")
-
+	_initialize_status_plate()
 
 
 func _exit_tree() -> void:
@@ -283,6 +285,7 @@ func _update_camera_transform() -> void:
 ## Public API for Settings menu to toggle camera mode
 func set_camera_mode(tpp: bool) -> void:
 	is_third_person = tpp
+	GameManager.preferred_camera_tpp = tpp
 	_apply_camera_mode()
 
 
@@ -322,6 +325,19 @@ func _update_equipment_stats() -> void:
 	stats.equipment_defense_bonus  = equipment.total_defense_bonus
 	stats.equipment_speed_bonus    = equipment.total_speed_bonus
 	stats.stats_recalculated.emit()
+
+func _initialize_status_plate() -> void:
+	if not show_status_plate:
+		return
+		
+	var scene_path: String = "res://scenes/ui/floating_status_plate.tscn"
+	if ResourceLoader.exists(scene_path):
+		var plate_scene = load(scene_path)
+		if plate_scene:
+			var plate: Node3D = plate_scene.instantiate() as Node3D
+			add_child(plate)
+			GameLogger.info("Player", "Status plate attached to Player")
+
 
 # ── Attack ───────────────────────────────────────────────────────
 const ATTACK_ARC: float = 0.7  # dot threshold (~90° cone, 45° each side)

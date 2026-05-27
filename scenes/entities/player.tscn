@@ -7,7 +7,7 @@
 radius = 0.4
 height = 1.8
 
-[node name="Player" type="CharacterBody3D" unique_id=1269473660]
+[node name="Player" type="CharacterBody3D" script="res://src/player/player.gd" unique_id=1269473660]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=275622454]
 shape = SubResource("PlayerShape")

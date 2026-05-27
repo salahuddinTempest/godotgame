@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://settings_menu_tscn"]
+[gd_scene load_steps=2 format=3 uid="uid://settings_menu_tscn"]
 
 [ext_resource type="Script" path="res://src/ui/settings_menu.gd" id="1_sm"]
 
@@ -9,6 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_sm")
 
 [node name="Overlay" type="ColorRect" parent="."]
 layout_mode = 1
@@ -28,7 +29,6 @@ anchor_right = 0.9
 anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_sm")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -40,51 +40,44 @@ text = "⚙ Pengaturan"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 
-[node name="TabContainer" type="TabContainer" parent="Panel/VBox"]
+[node name="CameraModeRow" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
 
-[node name="Controls" type="VBoxContainer" parent="Panel/VBox/TabContainer"]
-layout_mode = 2
-
-[node name="InfoLabel" type="Label" parent="Panel/VBox/TabContainer/Controls"]
-layout_mode = 2
-text = "Klik tombol di bawah untuk mengubah tombol keyboard. Tekan Esc untuk batal."
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 14
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox/TabContainer/Controls"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="VBox" type="VBoxContainer" parent="Panel/VBox/TabContainer/Controls/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="Video" type="VBoxContainer" parent="Panel/VBox/TabContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Title" type="Label" parent="Panel/VBox/TabContainer/Video"]
-layout_mode = 2
-text = "Pengaturan Kamera"
-theme_override_font_sizes/font_size = 20
-
-[node name="CameraModeRow" type="HBoxContainer" parent="Panel/VBox/TabContainer/Video"]
-layout_mode = 2
-size_flags_horizontal = 0
-
-[node name="ModeLabel" type="Label" parent="Panel/VBox/TabContainer/Video/CameraModeRow"]
+[node name="ModeLabel" type="Label" parent="Panel/VBox/CameraModeRow"]
 layout_mode = 2
 text = "Mode Kamera:"
 theme_override_font_sizes/font_size = 16
-size_flags_horizontal = 3
 
-[node name="ModeOption" type="OptionButton" parent="Panel/VBox/TabContainer/Video/CameraModeRow"]
+[node name="ModeOption" type="OptionButton" parent="Panel/VBox/CameraModeRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(200, 36)
-size_flags_horizontal = 2
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="ControlsTitle" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Kontrol"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="InfoLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Klik tombol di bawah untuk mengubah tombol keyboard. Tekan Esc untuk batal."
+autowrap_mode = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
