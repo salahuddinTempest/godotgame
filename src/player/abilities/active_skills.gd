@@ -15,14 +15,16 @@ var _skill_database: Dictionary = {
 		"mana_cost": 10.0,
 		"cooldown": 3.0,
 		"damage_multiplier": 1.5,
-		"damage_type": Constants.DamageType.PHYSICAL
+		"damage_type": Constants.DamageType.PHYSICAL,
+		"range": 5.0
 	},
 	"fireball": {
 		"name": "Fireball",
 		"mana_cost": 25.0,
 		"cooldown": 5.0,
 		"damage_multiplier": 2.0,
-		"damage_type": Constants.DamageType.FIRE
+		"damage_type": Constants.DamageType.FIRE,
+		"range": 5.0
 	},
 	"heal": {
 		"name": "Quick Heal",
@@ -30,6 +32,14 @@ var _skill_database: Dictionary = {
 		"cooldown": 15.0,
 		"heal_amount": 50.0,
 		"damage_type": Constants.DamageType.HOLY
+	},
+	"basic_attack": {
+		"name": "Basic Attack",
+		"mana_cost": 0.0,
+		"cooldown": 1.0,
+		"damage_multiplier": 1.0,
+		"damage_type": Constants.DamageType.PHYSICAL,
+		"range": 2.0
 	}
 }
 
@@ -48,6 +58,11 @@ func get_cooldown(skill_id: String) -> float:
 		return _skill_database[skill_id].get("cooldown", 1.0)
 	return 1.0
 
+func get_skill_range(skill_id: String) -> float:
+	if _skill_database.has(skill_id):
+		return _skill_database[skill_id].get("range", 5.0)
+	return 5.0
+
 func execute_skill(skill_id: String, caster: Node3D) -> void:
 	if not _skill_database.has(skill_id):
 		return
@@ -57,6 +72,8 @@ func execute_skill(skill_id: String, caster: Node3D) -> void:
 	
 	match skill_id:
 		"power_strike":
+			_execute_melee_attack(caster, skill_data)
+		"basic_attack":
 			_execute_melee_attack(caster, skill_data)
 		"fireball":
 			_execute_projectile(caster, skill_data)
@@ -76,7 +93,7 @@ func _execute_melee_attack(caster: Node3D, data: Dictionary) -> void:
 		targets = caster.get_tree().get_nodes_in_group("enemies")
 		
 	var hit_target: Node3D = null
-	var min_dist: float = 3.0 # Attack range
+	var min_dist: float = data.get("range", 5.0) # Attack range
 	
 	for target in targets:
 		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():
@@ -86,6 +103,10 @@ func _execute_melee_attack(caster: Node3D, data: Dictionary) -> void:
 			# Check if target is in front of caster (within ~60 degrees arc)
 			var to_target: Vector3 = (target.global_position - caster.global_position).normalized()
 			var forward: Vector3 = -caster.global_transform.basis.z.normalized() # Godot -Z is forward
+			# If the caster has a Model child, use the Model's visual forward direction (+Z)
+			var model_node = caster.get_node_or_null("Model")
+			if model_node:
+				forward = model_node.global_transform.basis.z.normalized()
 			var dot: float = forward.dot(to_target)
 			if dot > 0.5:
 				min_dist = dist
@@ -106,7 +127,7 @@ func _execute_projectile(caster: Node3D, data: Dictionary) -> void:
 		targets = caster.get_tree().get_nodes_in_group("enemies")
 		
 	var hit_target: Node3D = null
-	var min_dist: float = 15.0 # Ranged range
+	var min_dist: float = data.get("range", 5.0) # Ranged range
 	
 	for target in targets:
 		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():

@@ -53,21 +53,37 @@ func _physics_process(_delta: float) -> void:
 func is_alive() -> bool:
 	return stats and stats.is_alive()
 
+func get_current_attack_range() -> float:
+	if not active_skills:
+		return 2.0
+	
+	var skill_id: String = active_skill_id
+	var mana_cost: float = active_skills.get_mana_cost(skill_id)
+	
+	if not active_skills.knows_skill(skill_id) or (mana_cost > 0.0 and (not stats or stats.current_mana < mana_cost)):
+		skill_id = "basic_attack"
+	
+	return active_skills.get_skill_range(skill_id)
+
 func cast_active_skill(_target: Node3D = null) -> void:
 	if not is_alive():
 		return
 		
-	if not active_skills or not active_skills.knows_skill(active_skill_id):
-		GameLogger.warn("NPCBase", "%s doesn't know skill %s" % [display_name, active_skill_id])
+	if not active_skills:
 		return
 		
-	var mana_cost: float = active_skills.get_mana_cost(active_skill_id)
-	if stats.current_mana < mana_cost:
-		GameLogger.info("NPCBase", "%s lacks mana to cast %s" % [display_name, active_skill_id])
-		return
+	var skill_to_cast: String = active_skill_id
+	var mana_cost: float = active_skills.get_mana_cost(skill_to_cast)
+	
+	# Fallback to basic attack if the enemy doesn't know the active skill or doesn't have enough mana
+	if not active_skills.knows_skill(skill_to_cast) or stats.current_mana < mana_cost:
+		skill_to_cast = "basic_attack"
+		mana_cost = 0.0
 		
-	stats.use_mana(mana_cost)
-	active_skills.execute_skill(active_skill_id, self)
+	if mana_cost > 0.0:
+		stats.use_mana(mana_cost)
+		
+	active_skills.execute_skill(skill_to_cast, self)
 
 # === Private Methods ===
 

@@ -46,7 +46,7 @@ func _process_combat(delta: float) -> void:
 	# Bosses don't retreat
 	
 	var dist: float = _body.global_position.distance_to(target.global_position)
-	if dist > attack_range:
+	if dist > _body.get_current_attack_range():
 		change_state(Constants.EnemyState.PURSUIT)
 		return
 		

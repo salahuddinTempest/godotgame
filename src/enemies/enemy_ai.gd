@@ -5,9 +5,9 @@ extends Node
 ## Implements a simple state machine: Patrol, Pursuit, Combat, Retreat.
 
 # === Exports ===
-@export var detection_radius: float = 15.0
+@export var detection_radius: float = 20.0
 @export var attack_range: float = 2.0
-@export var attack_cooldown: float = 1.5
+@export var attack_cooldown: float = 0.8
 @export var patrol_waypoints: Array[Vector3] = []
 @export var waypoint_wait_time: float = 2.0
 
@@ -106,14 +106,15 @@ func _process_pursuit(delta: float) -> void:
 		return
 		
 	var dist: float = _body.global_position.distance_to(target.global_position)
-	if dist <= attack_range:
+	if dist <= _body.get_current_attack_range():
 		change_state(Constants.EnemyState.COMBAT)
 	else:
 		# Move towards target
 		var dir: Vector3 = (target.global_position - _body.global_position).normalized()
-		var speed: float = _body.stats.get_move_speed()
+		var speed: float = _body.stats.get_move_speed() * 1.25
 		_body.velocity.x = dir.x * speed
 		_body.velocity.z = dir.z * speed
+		_body.rotation.y = lerp_angle(_body.rotation.y, atan2(dir.x, dir.z), 12.0 * delta)
 
 func _process_combat(delta: float) -> void:
 	if not _is_target_valid():
@@ -121,20 +122,21 @@ func _process_combat(delta: float) -> void:
 		return
 		
 	var dist: float = _body.global_position.distance_to(target.global_position)
-	if dist > attack_range:
+	if dist > _body.get_current_attack_range():
 		change_state(Constants.EnemyState.PURSUIT)
 		return
 		
-	# Reset movement velocity while in combat range
-	_body.velocity.x = 0.0
-	_body.velocity.z = 0.0
+	# Rotate towards target
+	var dir: Vector3 = (target.global_position - _body.global_position).normalized()
+	_body.rotation.y = lerp_angle(_body.rotation.y, atan2(dir.x, dir.z), 15.0 * delta)
+	
+	# Keep moving slightly towards player to maintain pressure
+	var speed: float = _body.stats.get_move_speed() * 0.3
+	_body.velocity.x = dir.x * speed
+	_body.velocity.z = dir.z * speed
 	
 	# Execute attack/skill
 	if _attack_timer <= 0.0:
-		# Rotate towards target
-		var dir: Vector3 = (target.global_position - _body.global_position).normalized()
-		_body.rotation.y = atan2(dir.x, dir.z)
-		
 		# Execute skill
 		_body.cast_active_skill(target)
 		_attack_timer = attack_cooldown
