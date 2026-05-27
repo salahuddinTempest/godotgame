@@ -105,6 +105,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_local_authority():
 		return
 	if not stats.is_alive():
+		_update_camera_transform()
+		_update_animations()
 		return
 	if GameManager.current_state != Constants.GameState.IN_GAME:
 		return
@@ -160,6 +162,8 @@ func _physics_process(delta: float) -> void:
 	if not is_local_authority():
 		return
 	if not stats.is_alive():
+		_update_camera_transform()
+		_update_animations()
 		return
 
 	# Tick attack animation lock
@@ -304,6 +308,7 @@ func _handle_interaction() -> void:
 func _on_died() -> void:
 	velocity = Vector3.ZERO
 	GameLogger.info("Player", "Player %d has died" % peer_id)
+	_play_anim("Death")
 	EventBus.player_died.emit(peer_id)
 
 
@@ -361,6 +366,10 @@ func _execute_basic_attack() -> void:
 # ── Animation ───────────────────────────────────────────────────────
 func _update_animations() -> void:
 	if not anim_player:
+		return
+
+	if not stats.is_alive():
+		_play_anim("Death")
 		return
 
 	# If attacking, let the attack animation play through
