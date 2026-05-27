@@ -165,7 +165,7 @@ func _on_died() -> void:
 	if ai_controller:
 		ai_controller.change_state(Constants.EnemyState.DEAD)
 	
-	_play_anim("Death")
+	_play_anim("Death01")
 	
 	# Example loot drop
 	EventBus.loot_dropped.emit(global_position, ["gold", 10 * level])
@@ -293,7 +293,7 @@ func _update_animations(delta: float) -> void:
 		return
 		
 	if not is_alive():
-		_play_anim("Death")
+		_play_anim("Death01")
 		return
 		
 	if _attack_anim_timer > 0.0:

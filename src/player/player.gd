@@ -308,7 +308,7 @@ func _handle_interaction() -> void:
 func _on_died() -> void:
 	velocity = Vector3.ZERO
 	GameLogger.info("Player", "Player %d has died" % peer_id)
-	_play_anim("Death")
+	_play_anim("Death01")
 	EventBus.player_died.emit(peer_id)
 
 
@@ -369,7 +369,7 @@ func _update_animations() -> void:
 		return
 
 	if not stats.is_alive():
-		_play_anim("Death")
+		_play_anim("Death01")
 		return
 
 	# If attacking, let the attack animation play through

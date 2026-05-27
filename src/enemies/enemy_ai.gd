@@ -7,7 +7,6 @@ extends Node
 # === Exports ===
 @export var detection_radius: float = 15.0
 @export var attack_range: float = 2.0
-@export var retreat_health_threshold: float = 0.2 # 20%
 @export var attack_cooldown: float = 1.5
 @export var patrol_waypoints: Array[Vector3] = []
 @export var waypoint_wait_time: float = 2.0
@@ -119,11 +118,6 @@ func _process_pursuit(delta: float) -> void:
 func _process_combat(delta: float) -> void:
 	if not _is_target_valid():
 		change_state(Constants.EnemyState.PATROL)
-		return
-		
-	# Check retreat threshold
-	if _body.stats.get_health_percent() <= retreat_health_threshold:
-		change_state(Constants.EnemyState.RETREAT)
 		return
 		
 	var dist: float = _body.global_position.distance_to(target.global_position)
