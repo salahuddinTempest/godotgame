@@ -8,6 +8,9 @@ extends Node
 @export var detection_radius: float = 15.0
 @export var attack_range: float = 2.0
 @export var retreat_health_threshold: float = 0.2 # 20%
+@export var attack_cooldown: float = 1.5
+@export var patrol_waypoints: Array[Vector3] = []
+@export var waypoint_wait_time: float = 2.0
 
 # === Public Variables ===
 var current_state: Constants.EnemyState = Constants.EnemyState.IDLE
@@ -16,6 +19,9 @@ var target: Node3D = null
 # === Private Variables ===
 var _body: EnemyBase
 var _spawn_point: Vector3
+var _attack_timer: float = 0.0
+var _current_waypoint_index: int = 0
+var _waypoint_wait_timer: float = 0.0
 
 # === Public Methods ===
 
@@ -33,8 +39,12 @@ func change_state(new_state: Constants.EnemyState) -> void:
 # === Lifecycle Methods ===
 
 func _physics_process(delta: float) -> void:
-	if not _body or not _body.is_alive() or not multiplayer.is_server():
+	if not _body or not _body.is_alive():
 		return
+	if multiplayer.multiplayer_peer and not multiplayer.is_server():
+		return
+		
+	_attack_timer = maxf(0.0, _attack_timer - delta)
 		
 	match current_state:
 		Constants.EnemyState.IDLE:
@@ -51,11 +61,45 @@ func _physics_process(delta: float) -> void:
 # === Private Methods ===
 
 func _process_idle(_delta: float) -> void:
+	_body.velocity.x = 0.0
+	_body.velocity.z = 0.0
 	_check_for_target()
 
 func _process_patrol(delta: float) -> void:
-	# Simple wander logic
 	_check_for_target()
+	if current_state == Constants.EnemyState.PURSUIT:
+		return # Target acquired, abort patrol
+		
+	if patrol_waypoints.is_empty():
+		# Simple stationary idle when no waypoints
+		_body.velocity.x = 0.0
+		_body.velocity.z = 0.0
+		return
+		
+	# Process wait timer
+	if _waypoint_wait_timer > 0.0:
+		_waypoint_wait_timer -= delta
+		_body.velocity.x = 0.0
+		_body.velocity.z = 0.0
+		return
+		
+	var wp: Vector3 = patrol_waypoints[_current_waypoint_index]
+	var dist: float = _body.global_position.distance_to(wp)
+	
+	if dist <= 0.8:
+		# Waypoint reached!
+		_waypoint_wait_timer = waypoint_wait_time
+		_current_waypoint_index = (_current_waypoint_index + 1) % patrol_waypoints.size()
+		_body.velocity.x = 0.0
+		_body.velocity.z = 0.0
+	else:
+		# Move towards current waypoint
+		var dir: Vector3 = (wp - _body.global_position).normalized()
+		var speed: float = _body.stats.get_move_speed() * 0.6 # Walk speed
+		_body.velocity.x = dir.x * speed
+		_body.velocity.z = dir.z * speed
+		_body.rotation.y = lerp_angle(_body.rotation.y, atan2(dir.x, dir.z), 8.0 * delta)
+
 
 func _process_pursuit(delta: float) -> void:
 	if not _is_target_valid():
@@ -71,7 +115,6 @@ func _process_pursuit(delta: float) -> void:
 		var speed: float = _body.stats.get_move_speed()
 		_body.velocity.x = dir.x * speed
 		_body.velocity.z = dir.z * speed
-		_body.move_and_slide()
 
 func _process_combat(delta: float) -> void:
 	if not _is_target_valid():
@@ -88,9 +131,20 @@ func _process_combat(delta: float) -> void:
 		change_state(Constants.EnemyState.PURSUIT)
 		return
 		
-	# Execute attack
-	# (Typically handled by timers or animation events, simplified here)
-	pass
+	# Reset movement velocity while in combat range
+	_body.velocity.x = 0.0
+	_body.velocity.z = 0.0
+	
+	# Execute attack/skill
+	if _attack_timer <= 0.0:
+		# Rotate towards target
+		var dir: Vector3 = (target.global_position - _body.global_position).normalized()
+		_body.rotation.y = atan2(dir.x, dir.z)
+		
+		# Execute skill
+		_body.cast_active_skill(target)
+		_attack_timer = attack_cooldown
+
 
 func _process_retreat(delta: float) -> void:
 	if not _is_target_valid():
@@ -102,7 +156,6 @@ func _process_retreat(delta: float) -> void:
 	var speed: float = _body.stats.get_move_speed() * 1.2 # Run away faster
 	_body.velocity.x = dir.x * speed
 	_body.velocity.z = dir.z * speed
-	_body.move_and_slide()
 
 func _check_for_target() -> void:
 	# Find nearest player in GameManager active_players
@@ -111,7 +164,7 @@ func _check_for_target() -> void:
 	
 	for pid in GameManager.active_players:
 		var player = GameManager.active_players[pid]
-		if not is_instance_valid(player) or not player.is_alive():
+		if not is_instance_valid(player) or not (player.has_method("is_alive") and player.is_alive()):
 			continue
 			
 		var dist: float = _body.global_position.distance_to(player.global_position)

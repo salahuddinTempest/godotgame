@@ -40,6 +40,7 @@ func _ready() -> void:
 	LevelManager.current_level = self
 	LevelManager.current_level_name = "kingdom_hub"
 	spawn_player()
+	spawn_enemies()
 	build_village()
 
 
@@ -83,9 +84,25 @@ func _on_pause_quit() -> void:
 func spawn_player() -> void:
 	var ps: PackedScene = load("res://scenes/entities/player.tscn")
 	if not ps:
+		push_error("player.tscn not found")
 		return
 	var p: Node3D = ps.instantiate()
+	if not p:
+		push_error("player instantiate failed")
+		return
+
+	if not p.get_script():
+		push_error("player script null, setting programmatically")
+		var scr = load("res://src/player/player.gd")
+		if scr:
+			p.set_script(scr)
+			push_error("script set programmatically")
+		else:
+			push_error("failed to load player.gd")
+
 	add_child(p)
+	push_error("player in tree: " + str(p.is_inside_tree()))
+	push_error("player script: " + str(p.get_script()))
 
 	var save_data: Dictionary = GameManager.pending_save_data
 	var is_loading: bool = not save_data.is_empty()
@@ -100,6 +117,58 @@ func spawn_player() -> void:
 	GameManager.pending_save_slot = 0
 	GameManager.register_player(1, p)
 	GameManager.change_state(Constants.GameState.IN_GAME)
+
+
+## Spawn a wave of enemies around the player start point.
+func spawn_enemies() -> void:
+	var enemy_scene: PackedScene = load("res://scenes/entities/enemy.tscn")
+	if not enemy_scene:
+		GameLogger.warn("KingdomHub", "enemy.tscn not found — no enemies spawned")
+		return
+
+	# Positions relative to origin — spread around the village centre
+	var spawn_positions: Array[Vector3] = [
+		Vector3( 8.0, 2.0,  5.0),
+		Vector3(-8.0, 2.0,  5.0),
+		Vector3( 0.0, 2.0, 10.0),
+		Vector3( 6.0, 2.0, -8.0),
+		Vector3(-6.0, 2.0, -8.0),
+	]
+
+	var enemy_configs: Array[Dictionary] = [
+		{"id": "bandit_scout",  "name": "Bandit Scout",   "level": 1,
+		 "weapon": "res://assets/Medieval Weapons Pack by Quaternius/FBX/Dagger.fbx"},
+		{"id": "bandit_archer", "name": "Bandit Archer",  "level": 1,
+		 "weapon": "res://assets/Medieval Weapons Pack by Quaternius/FBX/Axe_Small.fbx"},
+		{"id": "bandit_grunt",  "name": "Bandit Grunt",   "level": 2,
+		 "weapon": "res://assets/Medieval Weapons Pack by Quaternius/FBX/Axe.fbx"},
+		{"id": "bandit_fighter","name": "Bandit Fighter", "level": 2,
+		 "weapon": "res://assets/Medieval Weapons Pack by Quaternius/FBX/Sword_2.fbx"},
+		{"id": "bandit_captain","name": "Bandit Captain", "level": 3,
+		 "weapon": "res://assets/Medieval Weapons Pack by Quaternius/FBX/Claymore.fbx"},
+	]
+
+	for i in spawn_positions.size():
+		var enemy: Node3D = enemy_scene.instantiate() as Node3D
+		if not enemy:
+			continue
+		add_child(enemy)
+		enemy.global_position = spawn_positions[i]
+
+		# Configure enemy identity and weapon via exported properties
+		var cfg: Dictionary = enemy_configs[i % enemy_configs.size()]
+		if "enemy_id" in enemy:
+			enemy.enemy_id = cfg["id"]
+		if "display_name" in enemy:
+			enemy.display_name = cfg["name"]
+		if "level" in enemy:
+			enemy.level = cfg["level"]
+		if "weapon_asset_path" in enemy:
+			enemy.weapon_asset_path = cfg["weapon"]
+
+		GameLogger.info("KingdomHub",
+			"Spawned '%s' (Lv%d) at %s" % [
+				cfg["name"], cfg["level"], spawn_positions[i]])
 
 
 func _restore_from_save(player: Node3D, data: Dictionary) -> void:

@@ -6,6 +6,8 @@ signal interacted(target: Node3D)
 @export var stats: CharacterStats
 @export var inventory: Inventory
 @export var equipment: Equipment
+var skill_manager: SkillManager
+var weapon_attachment: WeaponAttachment
 
 # ── Constants ──────────────────────────────────────────────────────
 const PLAYER_GRAVITY: float     = Constants.PLAYER_GRAVITY
@@ -31,6 +33,11 @@ var is_third_person: bool = true   # TPP by default
 var _cam_yaw: float   = 0.0   # radians
 var _cam_pitch: float = deg_to_rad(-20.0)
 
+# Attack animation state
+var _is_attacking: bool = false
+var _attack_anim_timer: float = 0.0
+
+
 # ── Node references ─────────────────────────────────────────────────
 @onready var camera_pivot: Node3D    = get_node_or_null("CameraPivot")
 @onready var camera: Camera3D        = get_node_or_null("CameraPivot/Camera3D")
@@ -38,7 +45,13 @@ var _cam_pitch: float = deg_to_rad(-20.0)
 @onready var interact_raycast: RayCast3D = get_node_or_null("CameraPivot/Camera3D/InteractRayCast")
 @onready var anim_player: AnimationPlayer = get_node_or_null("Model/AnimationPlayer")
 
+# Current equipped weapon data (public for UI / inventory)
+var equipped_weapon: WeaponData = null
 # ── Lifecycle ───────────────────────────────────────────────────────
+
+func _enter_tree() -> void:
+	push_error("Player _enter_tree")
+
 func _ready() -> void:
 	if not stats:
 		stats = CharacterStats.new()
@@ -51,12 +64,30 @@ func _ready() -> void:
 	stats.stats_recalculated.connect(_on_stats_recalculated)
 	equipment.equipment_stats_updated.connect(_update_equipment_stats)
 
+	# Initialize SkillManager and ActiveSkills dynamically
+	skill_manager = SkillManager.new()
+	var active_skills = ActiveSkills.new()
+	skill_manager.active_skills = active_skills
+	skill_manager.player_stats = stats
+	add_child(skill_manager)
+	skill_manager.add_child(active_skills)
+	
+	# Bind default skills to slots
+	skill_manager.bind_skill(1, "power_strike")
+	skill_manager.bind_skill(2, "fireball")
+	skill_manager.bind_skill(3, "heal")
+
 	if is_local_authority():
 		GameManager.register_player(peer_id, self)
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 	add_to_group("players")
 	_apply_camera_mode()
+	# Set up WeaponAttachment component
+	weapon_attachment = WeaponAttachment.new()
+	add_child(weapon_attachment)
+	call_deferred("_equip_default_weapon")
+
 
 
 func _exit_tree() -> void:
@@ -98,6 +129,31 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+	# Keyboard Active Skills Hotkeys
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_Q:
+			if skill_manager.activate_slot(1):
+				_is_attacking = true
+				_attack_anim_timer = 0.6
+				_play_anim("Sword_Attack")
+		elif event.keycode == KEY_E:
+			if skill_manager.activate_slot(2):
+				_is_attacking = true
+				_attack_anim_timer = 0.7
+				_play_anim("Spell_Simple_Shoot")
+		elif event.keycode == KEY_R:
+			if skill_manager.activate_slot(3):
+				_is_attacking = true
+				_attack_anim_timer = 0.6
+				_play_anim("Spell_Simple_Enter")
+
+	# Mouse Left Click Basic Attack
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			_execute_basic_attack()
+
+
+
 
 # ── Physics ─────────────────────────────────────────────────────────
 func _physics_process(delta: float) -> void:
@@ -105,6 +161,13 @@ func _physics_process(delta: float) -> void:
 		return
 	if not stats.is_alive():
 		return
+
+	# Tick attack animation lock
+	if _attack_anim_timer > 0.0:
+		_attack_anim_timer -= delta
+		if _attack_anim_timer <= 0.0:
+			_is_attacking = false
+
 
 	# 1. Apply gravity
 	if not is_on_floor():
@@ -221,7 +284,9 @@ func set_camera_mode(tpp: bool) -> void:
 
 # ── Helpers ─────────────────────────────────────────────────────────
 func is_local_authority() -> bool:
-	return multiplayer.get_unique_id() == peer_id or multiplayer.get_unique_id() == 1
+	if not multiplayer.multiplayer_peer:
+		return true
+	return multiplayer.get_unique_id() == peer_id
 
 
 func is_alive() -> bool:
@@ -253,13 +318,57 @@ func _update_equipment_stats() -> void:
 	stats.equipment_speed_bonus    = equipment.total_speed_bonus
 	stats.stats_recalculated.emit()
 
+func _execute_basic_attack() -> void:
+	if not is_alive():
+		return
+
+	_is_attacking = true
+	_attack_anim_timer = 0.6
+	_play_anim("Sword_Attack")
+
+	# Use equipped weapon stats (range + damage multiplier)
+	var attack_range: float = get_weapon_attack_range()
+	var dmg_mult: float     = get_weapon_damage_multiplier()
+	var weapon_name: String = equipped_weapon.display_name if equipped_weapon else "Fists"
+	GameLogger.info("Player", "Basic attack with %s (range %.1fm, ×%.1f dmg)" % [
+		weapon_name, attack_range, dmg_mult])
+
+	var targets := get_tree().get_nodes_in_group("enemies")
+	var hit_target: Node3D = null
+	var min_dist: float = attack_range
+
+	for target in targets:
+		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():
+			continue
+		var dist: float = global_position.distance_to(target.global_position)
+		if dist < min_dist:
+			# Verify facing angle (~60° arc, dot > 0.5)
+			var to_target: Vector3 = (target.global_position - global_position).normalized()
+			var forward: Vector3   = -global_transform.basis.z.normalized()
+			if forward.dot(to_target) > 0.5:
+				min_dist   = dist
+				hit_target = target
+
+	if hit_target:
+		CombatEngine.apply_combat_hit(self, hit_target, {
+			"name": "Basic Attack",
+			"damage_multiplier": dmg_mult,
+			"damage_type": Constants.DamageType.PHYSICAL
+		})
+
+
 
 # ── Animation ───────────────────────────────────────────────────────
 func _update_animations() -> void:
 	if not anim_player:
 		return
 
+	# If attacking, let the attack animation play through
+	if _is_attacking:
+		return
+
 	var on_ground: bool = is_on_floor() if is_local_authority() else abs(velocity.y) < 0.1
+
 
 	if not on_ground:
 		if velocity.y > 0.1:
@@ -280,3 +389,32 @@ func _play_anim(anim_name: String) -> void:
 	if anim_player and anim_player.has_animation(anim_name):
 		if anim_player.current_animation != anim_name:
 			anim_player.play(anim_name, 0.2)
+
+# ── Weapon API ──────────────────────────────────────────────────────
+
+## Equip the default Sword on game start.
+func _equip_default_weapon() -> void:
+	equip_weapon(WeaponData.make_sword())
+
+## Public API: equip any weapon at runtime (called by inventory/shop).
+## Example: player.equip_weapon(WeaponData.make_axe())
+func equip_weapon(weapon_data: WeaponData) -> void:
+	if not weapon_attachment:
+		GameLogger.warn("Player", "equip_weapon called but WeaponAttachment not ready")
+		return
+	var model_root: Node3D = model if model else self
+	var ok: bool = weapon_attachment.attach(weapon_data, model_root)
+	if ok:
+		equipped_weapon = weapon_data
+		GameLogger.info("Player", "Equipped: %s (×%.1f dmg, range %.1fm)" % [
+			weapon_data.display_name,
+			weapon_data.damage_multiplier,
+			weapon_data.attack_range])
+
+func get_weapon_damage_multiplier() -> float:
+	return weapon_attachment.get_damage_multiplier() if weapon_attachment else 1.0
+
+func get_weapon_attack_range() -> float:
+	return weapon_attachment.get_attack_range() if weapon_attachment else 2.0
+
+

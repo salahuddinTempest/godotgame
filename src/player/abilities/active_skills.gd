@@ -1,3 +1,4 @@
+class_name ActiveSkills
 extends Node
 ## Active skill definitions and execution.
 ##
@@ -66,17 +67,63 @@ func execute_skill(skill_id: String, caster: Node3D) -> void:
 
 # === Private Methods ===
 
-func _execute_melee_attack(_caster: Node3D, _data: Dictionary) -> void:
-	# Raycast forward from caster to find target
-	# Calculate damage via CombatEngine
-	pass
+func _execute_melee_attack(caster: Node3D, data: Dictionary) -> void:
+	# Find targets based on opposing groups
+	var targets: Array = []
+	if caster.is_in_group("enemies"):
+		targets = caster.get_tree().get_nodes_in_group("players") + caster.get_tree().get_nodes_in_group("npcs")
+	else:
+		targets = caster.get_tree().get_nodes_in_group("enemies")
+		
+	var hit_target: Node3D = null
+	var min_dist: float = 3.0 # Attack range
+	
+	for target in targets:
+		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():
+			continue
+		var dist: float = caster.global_position.distance_to(target.global_position)
+		if dist < min_dist:
+			# Check if target is in front of caster (within ~60 degrees arc)
+			var to_target: Vector3 = (target.global_position - caster.global_position).normalized()
+			var forward: Vector3 = -caster.global_transform.basis.z.normalized() # Godot -Z is forward
+			var dot: float = forward.dot(to_target)
+			if dot > 0.5:
+				min_dist = dist
+				hit_target = target
+				
+	if hit_target:
+		CombatEngine.apply_combat_hit(caster, hit_target, data)
+		GameLogger.info("ActiveSkills", "%s hit %s with Power Strike!" % [caster.name, hit_target.name])
+	else:
+		GameLogger.info("ActiveSkills", "%s executed Power Strike but missed." % caster.name)
 
-func _execute_projectile(_caster: Node3D, _data: Dictionary) -> void:
-	# Instantiate fireball projectile
-	pass
+func _execute_projectile(caster: Node3D, data: Dictionary) -> void:
+	# Find nearest opposing target in front within 15 meters
+	var targets: Array = []
+	if caster.is_in_group("enemies"):
+		targets = caster.get_tree().get_nodes_in_group("players") + caster.get_tree().get_nodes_in_group("npcs")
+	else:
+		targets = caster.get_tree().get_nodes_in_group("enemies")
+		
+	var hit_target: Node3D = null
+	var min_dist: float = 15.0 # Ranged range
+	
+	for target in targets:
+		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():
+			continue
+		var dist: float = caster.global_position.distance_to(target.global_position)
+		if dist < min_dist:
+			min_dist = dist
+			hit_target = target
+			
+	if hit_target:
+		CombatEngine.apply_combat_hit(caster, hit_target, data)
+		GameLogger.info("ActiveSkills", "%s launched a Fireball at %s!" % [caster.name, hit_target.name])
+	else:
+		GameLogger.info("ActiveSkills", "%s launched a Fireball but found no target." % caster.name)
 
 func _execute_self_heal(caster: Node3D, data: Dictionary) -> void:
-	# Assumes caster is the Player which has `stats` CharacterStats
+	# Assumes caster has `stats` CharacterStats
 	if caster and "stats" in caster:
-		var heal_amount: float = data.get("heal_amount", 10.0)
+		var heal_amount: float = data.get("heal_amount", 50.0)
 		caster.stats.heal(heal_amount)
