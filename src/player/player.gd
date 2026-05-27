@@ -323,6 +323,7 @@ func _update_equipment_stats() -> void:
 	stats.equipment_speed_bonus    = equipment.total_speed_bonus
 	stats.stats_recalculated.emit()
 
+# ── Attack ───────────────────────────────────────────────────────
 func _execute_basic_attack() -> void:
 	if not is_alive():
 		return
@@ -331,28 +332,41 @@ func _execute_basic_attack() -> void:
 	_attack_anim_timer = 0.6
 	_play_anim("Sword_Attack")
 
-	# Use equipped weapon stats (range + damage multiplier)
 	var attack_range: float = get_weapon_attack_range()
 	var dmg_mult: float     = get_weapon_damage_multiplier()
 	var weapon_name: String = equipped_weapon.display_name if equipped_weapon else "Fists"
 	GameLogger.info("Player", "Basic attack with %s (range %.1fm, ×%.1f dmg)" % [
 		weapon_name, attack_range, dmg_mult])
 
-	var targets := get_tree().get_nodes_in_group("enemies")
-	var hit_target: Node3D = null
-	var min_dist: float = attack_range
+	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var sphere_params := PhysicsShapeQueryParameters3D.new()
+	sphere_params.shape_rid = PhysicsServer3D.sphere_shape_create()
+	sphere_params.transform = Transform3D.IDENTITY.translated(global_position)
+	sphere_params.collision_mask = 1
+	sphere_params.exclude = [self]
 
-	for target in targets:
-		if not is_instance_valid(target) or not target.has_method("is_alive") or not target.is_alive():
+	PhysicsServer3D.shape_set_data(sphere_params.shape_rid, attack_range)
+
+	var results: Array[Dictionary] = space_state.intersect_shape(sphere_params)
+
+	var hit_target: Node3D = null
+	var min_dist_sq: float = INF
+
+	for result in results:
+		var col: Node = result.collider
+		if not col:
 			continue
-		var dist: float = global_position.distance_to(target.global_position)
-		if dist < min_dist:
-			# Verify facing angle (~60° arc, dot > 0.5)
-			var to_target: Vector3 = (target.global_position - global_position).normalized()
-			var forward: Vector3   = -global_transform.basis.z.normalized()
-			if forward.dot(to_target) > 0.5:
-				min_dist   = dist
-				hit_target = target
+		if not col.is_in_group("enemies"):
+			continue
+		if not col.has_method("is_alive") or not col.is_alive():
+			continue
+
+		var dist_sq: float = global_position.distance_squared_to(col.global_position)
+		if dist_sq < min_dist_sq:
+			min_dist_sq = dist_sq
+			hit_target = col
+
+	PhysicsServer3D.free_rid(sphere_params.shape_rid)
 
 	if hit_target:
 		CombatEngine.apply_combat_hit(self, hit_target, {
