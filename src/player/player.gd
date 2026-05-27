@@ -16,7 +16,7 @@ const PLAYER_ACCELERATION: float = Constants.PLAYER_ACCELERATION
 const PLAYER_FRICTION: float    = Constants.PLAYER_FRICTION
 
 # Camera pivot heights
-const FPP_HEIGHT: float = 1.6
+const FPP_HEIGHT: float = 0.7
 const TPP_DISTANCE: float = 4.0  # spring arm length
 const TPP_HEIGHT: float   = 1.2  # height above player root
 
@@ -205,13 +205,19 @@ func _physics_process(delta: float) -> void:
 	if direction.length() > 0.01:
 		velocity.x = lerp(velocity.x, direction.x * speed, PLAYER_ACCELERATION * delta)
 		velocity.z = lerp(velocity.z, direction.z * speed, PLAYER_ACCELERATION * delta)
-		# Rotate model to face movement direction
-		if model:
-			var target_y := atan2(direction.x, direction.z)
-			model.rotation.y = lerp_angle(model.rotation.y, target_y, 12.0 * delta)
 	else:
 		velocity.x = lerp(velocity.x, 0.0, PLAYER_FRICTION * delta)
 		velocity.z = lerp(velocity.z, 0.0, PLAYER_FRICTION * delta)
+
+	# Rotate model to face correct direction (movement dir for TPP, camera yaw for FPP)
+	if model:
+		if is_third_person:
+			if direction.length() > 0.01:
+				var target_y := atan2(direction.x, direction.z)
+				model.rotation.y = lerp_angle(model.rotation.y, target_y, 12.0 * delta)
+		else:
+			# Offset by PI (180 deg) because the model's forward direction is +Z (opposite to Godot's -Z)
+			model.rotation.y = lerp_angle(model.rotation.y, _cam_yaw + PI, 12.0 * delta)
 
 	move_and_slide()
 
@@ -229,14 +235,19 @@ func _apply_camera_mode() -> void:
 	if not camera_pivot or not camera:
 		return
 
-	if is_third_person:
+	if not is_local_authority():
+		# Remote players are always fully visible
 		if model:
 			model.visible = true
+		return
+
+	if model:
+		model.visible = true # Keep model visible in both FPP and TPP
+
+	if is_third_person:
 		if interact_raycast:
 			interact_raycast.target_position = Vector3(0, 0, -8)
 	else:
-		if model:
-			model.visible = false
 		if interact_raycast:
 			interact_raycast.target_position = Vector3(0, 0, -5)
 
@@ -278,7 +289,7 @@ func _update_camera_transform() -> void:
 		# Yaw applied on pivot, pitch applied on camera
 		camera_pivot.position    = Vector3(0, FPP_HEIGHT, 0)
 		camera_pivot.rotation    = Vector3(0, _cam_yaw, 0)
-		camera.position          = Vector3.ZERO
+		camera.position          = Vector3(0, 0, -0.2) # 20 cm forward to prevent head/face clipping
 		camera.rotation          = Vector3(_cam_pitch, 0, 0)
 
 
