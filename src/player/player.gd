@@ -324,6 +324,8 @@ func _update_equipment_stats() -> void:
 	stats.stats_recalculated.emit()
 
 # ── Attack ───────────────────────────────────────────────────────
+const ATTACK_ARC: float = 0.7  # dot threshold (~90° cone, 45° each side)
+
 func _execute_basic_attack() -> void:
 	if not is_alive():
 		return
@@ -332,41 +334,34 @@ func _execute_basic_attack() -> void:
 	_attack_anim_timer = 0.6
 	_play_anim("Sword_Attack")
 
-	var attack_range: float = get_weapon_attack_range()
-	var dmg_mult: float     = get_weapon_damage_multiplier()
-	var weapon_name: String = equipped_weapon.display_name if equipped_weapon else "Fists"
-	GameLogger.info("Player", "Basic attack with %s (range %.1fm, ×%.1f dmg)" % [
-		weapon_name, attack_range, dmg_mult])
+	var attack_range: float = minf(get_weapon_attack_range(), 2.0)
+	var dmg_mult: float = get_weapon_damage_multiplier()
+	var range_sq: float = attack_range * attack_range
 
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var sphere_params := PhysicsShapeQueryParameters3D.new()
-	sphere_params.shape_rid = PhysicsServer3D.sphere_shape_create()
-	sphere_params.transform = Transform3D.IDENTITY.translated(global_position)
-	sphere_params.collision_mask = 1
-	sphere_params.exclude = [self]
-
-	PhysicsServer3D.shape_set_data(sphere_params.shape_rid, attack_range)
-
-	var results: Array[Dictionary] = space_state.intersect_shape(sphere_params)
+	# Gunakan forward karakter (model), BUKAN arah kamera
+	var model_node: Node3D = model if model else self
+	var forward: Vector3 = model_node.global_transform.basis.z.normalized()
 
 	var hit_target: Node3D = null
 	var min_dist_sq: float = INF
 
-	for result in results:
-		var col: Node = result.collider
-		if not col:
+	for target in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(target):
 			continue
-		if not col.is_in_group("enemies"):
-			continue
-		if not col.has_method("is_alive") or not col.is_alive():
+		if not target.has_method("is_alive") or not target.is_alive():
 			continue
 
-		var dist_sq: float = global_position.distance_squared_to(col.global_position)
+		var dist_sq: float = global_position.distance_squared_to(target.global_position)
+		if dist_sq > range_sq:
+			continue
+
+		var to_target: Vector3 = (target.global_position - global_position).normalized()
+		if forward.dot(to_target) < ATTACK_ARC:
+			continue
+
 		if dist_sq < min_dist_sq:
 			min_dist_sq = dist_sq
-			hit_target = col
-
-	PhysicsServer3D.free_rid(sphere_params.shape_rid)
+			hit_target = target
 
 	if hit_target:
 		CombatEngine.apply_combat_hit(self, hit_target, {

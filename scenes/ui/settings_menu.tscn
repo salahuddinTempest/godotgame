@@ -62,6 +62,30 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
+[node name="Video" type="VBoxContainer" parent="Panel/VBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/VBox/TabContainer/Video"]
+layout_mode = 2
+text = "Pengaturan Kamera"
+theme_override_font_sizes/font_size = 20
+
+[node name="CameraModeRow" type="HBoxContainer" parent="Panel/VBox/TabContainer/Video"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="ModeLabel" type="Label" parent="Panel/VBox/TabContainer/Video/CameraModeRow"]
+layout_mode = 2
+text = "Mode Kamera:"
+theme_override_font_sizes/font_size = 16
+size_flags_horizontal = 3
+
+[node name="ModeOption" type="OptionButton" parent="Panel/VBox/TabContainer/Video/CameraModeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 36)
+size_flags_horizontal = 2
+
 [node name="CloseBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 size_flags_horizontal = 4

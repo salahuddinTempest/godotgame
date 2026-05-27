@@ -40,16 +40,40 @@ var _player: Player = null
 @onready var controls_scroll: ScrollContainer = $Panel/VBox/TabContainer/Controls/ScrollContainer
 @onready var controls_vbox: VBoxContainer = $Panel/VBox/TabContainer/Controls/ScrollContainer/VBox
 @onready var close_btn: Button = $Panel/VBox/CloseBtn
+@onready var camera_mode_option: OptionButton = $Panel/VBox/TabContainer/Video/CameraModeRow/ModeOption
 
 
 func _ready() -> void:
 	close_btn.pressed.connect(_on_close_pressed)
 	_populate_controls()
+	_setup_camera_tab()
 
 	# Find player in scene (if in game)
 	var players := get_tree().get_nodes_in_group("players")
 	if players.size() > 0 and players[0] is Player:
 		_player = players[0]
+
+
+func _setup_camera_tab() -> void:
+	camera_mode_option.clear()
+	camera_mode_option.add_item("Third Person (TPP)", 0)
+	camera_mode_option.add_item("First Person (FPP)", 1)
+
+	if _player:
+		camera_mode_option.selected = 0 if _player.is_third_person else 1
+	else:
+		camera_mode_option.selected = 0
+
+	camera_mode_option.item_selected.connect(_on_camera_mode_selected)
+
+
+func _on_camera_mode_selected(index: int) -> void:
+	var tpp: bool = (index == 0)
+	if _player:
+		_player.set_camera_mode(tpp)
+		GameLogger.info("SettingsMenu", "Camera mode switched to %s" % ["TPP", "FPP"][index])
+	else:
+		GameLogger.warn("SettingsMenu", "No player found to switch camera mode")
 
 
 func _populate_controls() -> void:
